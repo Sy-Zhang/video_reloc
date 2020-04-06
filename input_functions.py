@@ -133,7 +133,7 @@ def reorder_func(v1, l1, v2, l2, label):
   return (v1, l1, v2, l2), label
 
 if __name__ == '__main__':
-  subset = 'test'
+  subset = 'val'
   with open(os.path.join('data', subset + '.json'), 'r') as f:
     data = json.load(f)
   videos = [[] for _ in range(4)]
@@ -156,11 +156,11 @@ if __name__ == '__main__':
     while not sess.should_stop():
       value = sess.run(next_element)
       pair = dict()
-      pair['query_id'] = value[0]
-      pair['query_gt'] = [value[1][0], value[1][1]]
-      pair['reference_id'] = value[2]
-      pair['reference_gt'] = [value[3][0]+value[4][0], value[3][1]+value[4][0]]
-      pair['reference_loc'] = [value[4][0], value[4][1]]
+      pair['query_id'] = 'v_'+value[0].decode("utf-8")
+      pair['query_gt'] = [int(value[1][0]), int(value[1][1])]
+      pair['reference_id'] = 'v_'+value[2].decode("utf-8")
+      pair['reference_gt'] = [int(value[3][0]+value[4][0]), int(value[3][1]+value[4][0])]
+      pair['reference_loc'] = [int(value[4][0]), int(value[4][1])]
       all_pairs.append(pair)
-    with open('data/new_{}.json'.format(subset), 'w') as f:
-      json.dump(videos, f)
+  with open('data/new_{}.json'.format(subset), 'w') as f:
+    json.dump(all_pairs, f)
