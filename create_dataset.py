@@ -75,7 +75,7 @@ def get_videos(subset):
   else:
     raise ValueError('Unknown subset.')
   names = classes.keys()
-  names.sort()
+  sorted(names)
   names = [v for i, v in enumerate(names) if i in used]
 
   all_videos = []

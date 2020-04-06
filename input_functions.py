@@ -131,3 +131,36 @@ def reorder_func(v1, l1, v2, l2, label):
   # l2.set_shape([FLAGS.batch_size])
   # label.set_shape([FLAGS.batch_size, 2])
   return (v1, l1, v2, l2), label
+
+if __name__ == '__main__':
+  subset = 'test'
+  with open(os.path.join('data', subset + '.json'), 'r') as f:
+    data = json.load(f)
+  videos = [[] for _ in range(4)]
+  for i in data:
+    videos[0].append(i['id'])
+    videos[1].append(i['groundtruth'])
+    videos[2].append(i['label'])
+    videos[3].append(i['location'])
+  for i in range(4):
+    videos[i] = tf.convert_to_tensor(videos[i])
+  dataset = tf.data.Dataset.from_tensor_slices(tuple(videos))
+  dataset = dataset.map(
+    lambda v, t, l, d: sample(v, t, l, d, *videos, is_training=False))
+  iterator = dataset.make_one_shot_iterator()
+  next_element = iterator.get_next()
+
+  import json
+  all_pairs = []
+  with tf.train.MonitoredTrainingSession() as sess:
+    while not sess.should_stop():
+      value = sess.run(next_element)
+      pair = dict()
+      pair['query_id'] = value[0]
+      pair['query_gt'] = [value[1][0], value[1][1]]
+      pair['reference_id'] = value[2]
+      pair['reference_gt'] = [value[3][0]+value[4][0], value[3][1]+value[4][0]]
+      pair['reference_loc'] = [value[4][0], value[4][1]]
+      all_pairs.append(pair)
+    with open('data/new_{}.json'.format(subset), 'w') as f:
+      json.dump(videos, f)
